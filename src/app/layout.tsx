@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Navigation from '@/components/Navigation';
+import ClientLayout from '@/components/ClientLayout';
 
 export const metadata: Metadata = {
   title: 'Carglass – Værkstedssystem',
@@ -16,10 +17,7 @@ export default function RootLayout({
     <html lang="da">
       <body className="min-h-screen bg-slate-50">
         <Navigation />
-        {/* Main content shifted right of sidebar */}
-        <main className="ml-64 min-h-screen">
-          {children}
-        </main>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
