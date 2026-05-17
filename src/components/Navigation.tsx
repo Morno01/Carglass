@@ -45,6 +45,9 @@ export default function Navigation() {
     setReparatør(getCurrentReparatør());
   }, [pathname]);
 
+  // Hide sidebar on start/login page
+  if (pathname === '/') return null;
+
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-navy-800 text-white flex flex-col shadow-xl z-40">
       {/* Logo / Brand */}

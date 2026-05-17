@@ -4,10 +4,9 @@ import { useRouter } from 'next/navigation';
 import { getReparatører, setCurrentReparatør } from '@/lib/storage';
 import { Reparatør } from '@/lib/types';
 
-const reparatører = getReparatører();
-
 export default function StartPage() {
   const router = useRouter();
+  const reparatører = getReparatører();
 
   function vælgBruger(r: Reparatør) {
     setCurrentReparatør(r);
@@ -15,7 +14,7 @@ export default function StartPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 ml-0">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
       <div className="w-full max-w-md px-6">
         {/* Logo / Brand block */}
         <div className="text-center mb-10">
