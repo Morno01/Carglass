@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getCurrentReparatør } from '@/lib/storage';
-import { Reparatør } from '@/lib/types';
 
 const navItems = [
   {
@@ -39,7 +38,7 @@ const navItems = [
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const [reparatør, setReparatør] = useState<Reparatør | null>(null);
+  const [reparatør, setReparatør] = useState(null);
 
   useEffect(() => {
     setReparatør(getCurrentReparatør());
