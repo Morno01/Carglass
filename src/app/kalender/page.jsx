@@ -52,6 +52,7 @@ export default function KalenderPage() {
   const [reparatører, setReparatører] = useState([]);
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedRep, setSelectedRep] = useState(null);
   const [selectedOpgave, setSelectedOpgave] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -81,7 +82,7 @@ export default function KalenderPage() {
 
   function tasksForDate(ds) {
     return opgaver
-      .filter((o) => o.dato === ds)
+      .filter((o) => o.dato === ds && (!selectedRep || o.reparatørId === selectedRep))
       .sort((a, b) => a.starttid.localeCompare(b.starttid));
   }
 
@@ -136,6 +137,32 @@ export default function KalenderPage() {
               </svg>
             </button>
           </div>
+        </div>
+
+        {/* Repairman filter */}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <button
+            onClick={() => setSelectedRep(null)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              !selectedRep ? 'bg-navy-800 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Alle
+          </button>
+          {reparatører.map((rep) => (
+            <button
+              key={rep.id}
+              onClick={() => setSelectedRep(selectedRep === rep.id ? null : rep.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                selectedRep === rep.id ? 'bg-navy-800 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${selectedRep === rep.id ? 'bg-white/20 text-white' : 'bg-navy-800 text-white'}`}>
+                {rep.navn.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+              </span>
+              {rep.navn.split(' ')[0]}
+            </button>
+          ))}
         </div>
 
         {/* Calendar grid */}
