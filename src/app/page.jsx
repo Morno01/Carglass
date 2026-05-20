@@ -45,19 +45,22 @@ function formatMinutes(min) {
   return m > 0 ? `${h}t ${m}m` : `${h} time${h > 1 ? 'r' : ''}`;
 }
 
-// 24 columns: 07:00–18:30 in 30-min steps. 18:30 is a boundary-only end marker.
+// 45 marks: 07:00–18:00 in 15-min steps. 18:00 is a boundary-only end marker.
+// Scheduleable: 07:00–17:45 (44 slots). Each slot = 15 min.
 const TIME_SLOTS = [];
 for (let h = 7; h <= 18; h++) {
-  TIME_SLOTS.push(`${String(h).padStart(2, '0')}:00`);
-  TIME_SLOTS.push(`${String(h).padStart(2, '0')}:30`);
+  for (let m = 0; m < 60; m += 15) {
+    if (h === 18 && m > 0) break;
+    TIME_SLOTS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+  }
 }
 
 function timeToSlotIndex(time) {
   const [h, m] = time.split(':').map(Number);
-  return (h - 7) * 2 + (m >= 30 ? 1 : 0);
+  return (h - 7) * 4 + Math.floor(m / 15);
 }
 
-const SCHEDULEABLE_SLOTS = TIME_SLOTS.length - 1; // 18:30 is boundary-only
+const SCHEDULEABLE_SLOTS = TIME_SLOTS.length - 1; // 18:00 is boundary-only
 
 function buildSchedule(tasks) {
   const slots = Array(TIME_SLOTS.length).fill(null).map(() => ({ type: 'empty' }));
@@ -65,7 +68,7 @@ function buildSchedule(tasks) {
     const si = timeToSlotIndex(task.starttid);
     if (si < 0 || si >= SCHEDULEABLE_SLOTS) continue;
     const span = Math.min(
-      Math.max(1, Math.ceil(task.tidsestimat / 30)),
+      Math.max(1, Math.round(task.tidsestimat / 15)),
       SCHEDULEABLE_SLOTS - si
     );
     slots[si] = { type: 'task', task, span };
@@ -278,11 +281,11 @@ export default function DashboardPage() {
 
             {/* Timeline table: time slots as columns, repairmen as rows */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-              <table className="border-collapse" style={{ tableLayout: 'fixed', minWidth: `${160 + TIME_SLOTS.length * 64}px` }}>
+              <table className="border-collapse" style={{ tableLayout: 'fixed', minWidth: `${160 + TIME_SLOTS.length * 36}px` }}>
                 <colgroup>
                   <col style={{ width: '160px' }} />
                   {TIME_SLOTS.map((slot) => (
-                    <col key={slot} style={{ width: '64px' }} />
+                    <col key={slot} style={{ width: '36px' }} />
                   ))}
                 </colgroup>
                 <thead>
@@ -291,18 +294,25 @@ export default function DashboardPage() {
                       Medarbejder
                     </th>
                     {TIME_SLOTS.map((slot) => {
-                      const isHour = slot.endsWith(':00');
+                      const mins = slot.slice(3); // '00', '15', '30', '45'
+                      const isHour = mins === '00';
+                      const isHalf = mins === '30';
+                      const isQuarter = mins === '15' || mins === '45';
                       return (
                         <th
                           key={slot}
-                          style={{ width: '64px', position: 'relative', overflow: 'visible', padding: 0 }}
-                          className={`border-r border-slate-100 last:border-r-0 ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
+                          style={{ width: '36px', position: 'relative', overflow: 'visible', padding: 0 }}
+                          className={`border-r last:border-r-0 ${isHour ? 'border-slate-200 bg-slate-50' : isHalf ? 'border-slate-150 bg-slate-50/60' : 'border-slate-100 bg-slate-50/30'}`}
                         >
                           <span
                             style={{ position: 'absolute', left: 0, top: '50%', transform: 'translate(-50%, -50%)', whiteSpace: 'nowrap', pointerEvents: 'none' }}
-                            className={isHour ? 'text-[11px] font-mono text-slate-500' : 'text-[10px] font-mono text-slate-300'}
+                            className={
+                              isHour    ? 'text-[11px] font-semibold font-mono text-slate-600' :
+                              isHalf    ? 'text-[10px] font-mono text-slate-400' :
+                              isQuarter ? 'text-[9px] font-mono text-slate-300' : ''
+                            }
                           >
-                            {isHour ? slot : ':30'}
+                            {isHour ? slot : `:${mins}`}
                           </span>
                         </th>
                       );
