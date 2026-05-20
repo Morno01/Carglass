@@ -60,24 +60,10 @@ function timeToSlotIndex(time) {
   return (h - 7) * 4 + Math.floor(m / 15);
 }
 
-const SCHEDULEABLE_SLOTS = TIME_SLOTS.length - 1; // 18:00 is boundary-only
-
-function buildSchedule(tasks) {
-  const slots = Array(TIME_SLOTS.length).fill(null).map(() => ({ type: 'empty' }));
-  for (const task of tasks) {
-    const si = timeToSlotIndex(task.starttid);
-    if (si < 0 || si >= SCHEDULEABLE_SLOTS) continue;
-    const span = Math.min(
-      Math.max(1, Math.round(task.tidsestimat / 15)),
-      SCHEDULEABLE_SLOTS - si
-    );
-    slots[si] = { type: 'task', task, span };
-    for (let i = 1; i < span; i++) {
-      slots[si + i] = { type: 'skip' };
-    }
-  }
-  return slots;
-}
+const COL_W = 36;   // px per 15-min slot
+const NAME_W = 160; // px for repairman name column
+const ROW_H = 80;   // px per repairman row
+const HEADER_H = 40; // px for time label row
 
 function StatCard({ label, value, color }) {
   const colors = {
@@ -158,13 +144,6 @@ export default function DashboardPage() {
   }
 
   const isToday = (d) => toDateStr(d) === today;
-
-  // Build per-repairman schedules for day view
-  const schedules = {};
-  for (const rep of reparatører) {
-    const tasks = getTasksForCell(rep.id, currentDateStr);
-    schedules[rep.id] = buildSchedule(tasks);
-  }
 
   const statusBorder = (status) =>
     status === 'Afsluttet' ? 'border-t-blue-400' :
@@ -279,54 +258,75 @@ export default function DashboardPage() {
               </p>
             )}
 
-            {/* Timeline table: time slots as columns, repairmen as rows */}
+            {/* Timeline — div/absolute layout so all columns are exactly COL_W px */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-              <table className="border-collapse" style={{ tableLayout: 'fixed', minWidth: `${160 + TIME_SLOTS.length * 36}px` }}>
-                <colgroup>
-                  <col style={{ width: '160px' }} />
-                  {TIME_SLOTS.map((slot) => (
-                    <col key={slot} style={{ width: '36px' }} />
-                  ))}
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-3 border-r border-slate-200 bg-slate-50 whitespace-nowrap" style={{ width: '160px' }}>
-                      Medarbejder
-                    </th>
-                    {TIME_SLOTS.map((slot) => {
-                      const mins = slot.slice(3); // '00', '15', '30', '45'
+              <div style={{ width: NAME_W + TIME_SLOTS.length * COL_W }}>
+
+                {/* Header row */}
+                <div className="flex border-b border-slate-200">
+                  <div
+                    className="shrink-0 flex items-center px-3 bg-slate-50 border-r border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ width: NAME_W, height: HEADER_H }}
+                  >
+                    Medarbejder
+                  </div>
+                  <div className="relative" style={{ width: TIME_SLOTS.length * COL_W, height: HEADER_H }}>
+                    {/* Vertical grid lines in header */}
+                    {TIME_SLOTS.map((slot, si) => {
+                      const mins = slot.slice(3);
                       const isHour = mins === '00';
                       const isHalf = mins === '30';
-                      const isQuarter = mins === '15' || mins === '45';
                       return (
-                        <th
+                        <div
                           key={slot}
-                          style={{ width: '36px', position: 'relative', overflow: 'visible', padding: 0 }}
-                          className={`border-r last:border-r-0 ${isHour ? 'border-slate-200 bg-slate-50' : isHalf ? 'border-slate-150 bg-slate-50/60' : 'border-slate-100 bg-slate-50/30'}`}
-                        >
-                          <span
-                            style={{ position: 'absolute', left: 0, top: '50%', transform: 'translate(-50%, -50%)', whiteSpace: 'nowrap', pointerEvents: 'none' }}
-                            className={
-                              isHour    ? 'text-[11px] font-semibold font-mono text-slate-600' :
-                              isHalf    ? 'text-[10px] font-mono text-slate-400' :
-                              isQuarter ? 'text-[9px] font-mono text-slate-300' : ''
-                            }
-                          >
-                            {isHour ? slot : `:${mins}`}
-                          </span>
-                        </th>
+                          className={`absolute top-0 bottom-0 ${isHour ? 'border-l-2 border-slate-300' : isHalf ? 'border-l border-slate-200' : 'border-l border-slate-100'}`}
+                          style={{ left: si * COL_W, width: COL_W }}
+                        />
                       );
                     })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleReps.map((rep) => (
-                    <tr key={rep.id} className="border-b border-slate-100 last:border-b-0">
-                      {/* Repairman name cell — click to filter */}
-                      <td className="border-r border-slate-200 px-2 py-2 align-middle bg-slate-50/50">
+                    {/* Time labels — centered on each column boundary */}
+                    {TIME_SLOTS.map((slot, si) => {
+                      const mins = slot.slice(3);
+                      const isHour = mins === '00';
+                      const isHalf = mins === '30';
+                      return (
+                        <span
+                          key={`lbl-${slot}`}
+                          className={
+                            isHour ? 'text-[11px] font-semibold font-mono text-slate-600' :
+                            isHalf ? 'text-[10px] font-mono text-slate-400' :
+                                     'text-[9px] font-mono text-slate-300'
+                          }
+                          style={{
+                            position: 'absolute',
+                            left: si * COL_W,
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            whiteSpace: 'nowrap',
+                            pointerEvents: 'none',
+                            userSelect: 'none',
+                          }}
+                        >
+                          {isHour ? slot : `:${mins}`}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Repairman rows */}
+                {visibleReps.map((rep) => {
+                  const repTasks = getTasksForCell(rep.id, currentDateStr);
+                  return (
+                    <div key={rep.id} className="flex border-b border-slate-100 last:border-b-0">
+                      {/* Name cell */}
+                      <div
+                        className="shrink-0 flex items-center border-r border-slate-200 bg-slate-50/50 px-2"
+                        style={{ width: NAME_W, height: ROW_H }}
+                      >
                         <button
                           onClick={() => setSelectedRep(selectedRep === rep.id ? null : rep.id)}
-                          className={`w-full text-left rounded-lg px-2 py-1.5 transition-colors whitespace-nowrap ${
+                          className={`w-full text-left rounded-lg px-2 py-1.5 transition-colors ${
                             selectedRep === rep.id ? 'bg-navy-100 ring-2 ring-navy-400' : 'hover:bg-slate-100'
                           }`}
                         >
@@ -334,58 +334,62 @@ export default function DashboardPage() {
                             <div className="w-7 h-7 rounded-full bg-navy-800 text-white flex items-center justify-center text-xs font-bold shrink-0">
                               {rep.navn.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                             </div>
-                            <span className="text-sm font-semibold text-slate-800">{rep.navn}</span>
+                            <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">{rep.navn}</span>
                           </div>
                         </button>
-                      </td>
+                      </div>
 
-                      {/* Time slot cells */}
-                      {TIME_SLOTS.map((slot, si) => {
-                        const cell = schedules[rep.id]?.[si];
-                        if (!cell || cell.type === 'skip') return null;
-                        if (cell.type === 'empty') {
-                          const isHour = slot.endsWith(':00');
+                      {/* Task area — absolute positioning */}
+                      <div className="relative" style={{ width: TIME_SLOTS.length * COL_W, height: ROW_H }}>
+                        {/* Background grid lines */}
+                        {TIME_SLOTS.map((slot, si) => {
+                          const mins = slot.slice(3);
+                          const isHour = mins === '00';
+                          const isHalf = mins === '30';
                           return (
-                            <td
+                            <div
                               key={slot}
-                              className={`border-r border-slate-100 last:border-r-0 h-20 ${isHour ? '' : 'bg-slate-50/20'}`}
+                              className={`absolute top-0 bottom-0 ${isHour ? 'border-l-2 border-slate-200' : isHalf ? 'border-l border-slate-150' : 'border-l border-slate-100'}`}
+                              style={{ left: si * COL_W, width: COL_W }}
                             />
                           );
-                        }
-                        // task cell
-                        const { task, span } = cell;
-                        return (
-                          <td
-                            key={slot}
-                            colSpan={span}
-                            className="border-r border-slate-100 last:border-r-0 px-1 py-1 align-top h-20"
-                          >
+                        })}
+
+                        {/* Tasks */}
+                        {repTasks.map((task) => {
+                          const si = timeToSlotIndex(task.starttid);
+                          const span = Math.max(1, Math.round(task.tidsestimat / 15));
+                          const left = si * COL_W;
+                          const width = span * COL_W;
+                          return (
                             <button
+                              key={task.id}
                               onClick={() => setSelectedOpgave(task)}
-                              className={`w-full h-full text-left rounded-lg border-t-4 border p-1.5 transition-all hover:shadow-md group ${statusBorder(task.status)} ${statusBg(task.status)} border-slate-200`}
+                              className={`absolute rounded-lg border-t-4 border p-1.5 text-left transition-all hover:shadow-md group overflow-hidden ${statusBorder(task.status)} ${statusBg(task.status)} border-slate-200`}
+                              style={{ left: left + 1, width: width - 2, top: 4, bottom: 4 }}
                             >
                               <div className="flex items-center justify-between gap-1 mb-0.5">
-                                <span className="text-[10px] font-mono text-slate-400">
+                                <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap">
                                   {task.starttid}–{addMinutes(task.starttid, task.tidsestimat)}
                                 </span>
                                 <StatusBadge status={task.status} size="sm" />
                               </div>
-                              <p className="text-[11px] font-semibold text-slate-900 leading-snug group-hover:text-navy-800 line-clamp-2">
+                              <p className="text-[11px] font-semibold text-slate-900 leading-snug group-hover:text-navy-800 truncate">
                                 {task.opgavetype}
                               </p>
-                              {span >= 3 && (
-                                <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
+                              {span >= 4 && (
+                                <p className="text-[10px] text-slate-500 mt-0.5 truncate">
                                   {task.bil.mærke} {task.bil.model}
                                 </p>
                               )}
                             </button>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}
