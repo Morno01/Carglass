@@ -153,9 +153,9 @@ export default function DashboardPage() {
   }
 
   const statusBorder = (status) =>
-    status === 'Afsluttet' ? 'border-blue-400' :
-    status === 'I gang'    ? 'border-green-400' :
-                             'border-slate-300';
+    status === 'Afsluttet' ? 'border-t-blue-400' :
+    status === 'I gang'    ? 'border-t-green-400' :
+                             'border-t-slate-300';
 
   const statusBg = (status) =>
     status === 'Afsluttet' ? 'bg-blue-50' :
@@ -251,85 +251,87 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Timeline table */}
+            {/* Timeline table: time slots as columns, repairmen as rows */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-              <table className="w-full border-collapse" style={{ minWidth: `${120 + visibleReps.length * 240}px` }}>
+              <table className="border-collapse" style={{ minWidth: `${160 + TIME_SLOTS.length * 52}px` }}>
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-3 w-20 border-r border-slate-200 bg-slate-50">
-                      Tid
+                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-3 border-r border-slate-200 bg-slate-50 whitespace-nowrap w-36">
+                      Medarbejder
                     </th>
-                    {visibleReps.map((rep) => (
-                      <th key={rep.id} className="text-left px-3 py-3 border-r border-slate-200 last:border-r-0 bg-slate-50">
+                    {TIME_SLOTS.map((slot) => {
+                      const isHour = slot.endsWith(':00');
+                      return (
+                        <th
+                          key={slot}
+                          className={`px-0 py-2 border-r border-slate-100 last:border-r-0 text-center w-13 ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
+                        >
+                          {isHour ? (
+                            <span className="text-[11px] font-mono text-slate-500">{slot}</span>
+                          ) : (
+                            <span className="text-[10px] font-mono text-slate-300">:{slot.slice(3)}</span>
+                          )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleReps.map((rep) => (
+                    <tr key={rep.id} className="border-b border-slate-100 last:border-b-0">
+                      {/* Repairman name cell */}
+                      <td className="border-r border-slate-200 px-3 py-2 align-middle bg-slate-50/50 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-navy-800 text-white flex items-center justify-center text-xs font-bold shrink-0">
                             {rep.navn.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                           </div>
                           <span className="text-sm font-semibold text-slate-800">{rep.navn}</span>
                         </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {TIME_SLOTS.map((slot, si) => {
-                    const isHour = slot.endsWith(':00');
-                    return (
-                      <tr key={slot} className={`border-b border-slate-100 last:border-b-0 ${isHour ? '' : 'bg-slate-50/30'}`}>
-                        <td className={`border-r border-slate-200 px-3 py-1 align-top w-20 ${isHour ? '' : 'border-t-0'}`}>
-                          {isHour && (
-                            <span className="text-xs font-mono text-slate-400">{slot}</span>
-                          )}
-                        </td>
-                        {visibleReps.map((rep) => {
-                          const cell = schedules[rep.id]?.[si];
-                          if (!cell || cell.type === 'skip') return null;
-                          if (cell.type === 'empty') {
-                            return (
-                              <td
-                                key={rep.id}
-                                className="border-r border-slate-100 last:border-r-0 px-1 py-1 h-8"
-                              />
-                            );
-                          }
-                          // task cell
-                          const { task, span } = cell;
+                      </td>
+
+                      {/* Time slot cells */}
+                      {TIME_SLOTS.map((slot, si) => {
+                        const cell = schedules[rep.id]?.[si];
+                        if (!cell || cell.type === 'skip') return null;
+                        if (cell.type === 'empty') {
+                          const isHour = slot.endsWith(':00');
                           return (
                             <td
-                              key={rep.id}
-                              rowSpan={span}
-                              className="border-r border-slate-100 last:border-r-0 px-1.5 py-1.5 align-top"
+                              key={slot}
+                              className={`border-r border-slate-100 last:border-r-0 h-16 ${isHour ? '' : 'bg-slate-50/20'}`}
+                            />
+                          );
+                        }
+                        // task cell
+                        const { task, span } = cell;
+                        return (
+                          <td
+                            key={slot}
+                            colSpan={span}
+                            className="border-r border-slate-100 last:border-r-0 px-1 py-1 align-top h-16"
+                          >
+                            <button
+                              onClick={() => setSelectedOpgave(task)}
+                              className={`w-full h-full text-left rounded-lg border-t-4 border p-1.5 transition-all hover:shadow-md group ${statusBorder(task.status)} ${statusBg(task.status)} border-slate-200`}
                             >
-                              <button
-                                onClick={() => setSelectedOpgave(task)}
-                                className={`w-full h-full text-left rounded-lg border-l-4 border p-2 transition-all hover:shadow-md group ${statusBorder(task.status)} ${statusBg(task.status)} border-slate-200`}
-                              >
-                                <div className="flex items-start justify-between gap-1 mb-0.5">
-                                  <span className="text-[10px] font-mono text-slate-400">{task.starttid}</span>
-                                  <StatusBadge status={task.status} size="sm" />
-                                </div>
-                                <p className="text-xs font-semibold text-slate-900 leading-snug group-hover:text-navy-800 line-clamp-2">
-                                  {task.opgavetype}
-                                </p>
-                                <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                              <div className="flex items-center justify-between gap-1 mb-0.5">
+                                <span className="text-[10px] font-mono text-slate-400">{task.starttid}</span>
+                                <StatusBadge status={task.status} size="sm" />
+                              </div>
+                              <p className="text-[11px] font-semibold text-slate-900 leading-snug group-hover:text-navy-800 line-clamp-2">
+                                {task.opgavetype}
+                              </p>
+                              {span >= 3 && (
+                                <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
                                   {task.bil.mærke} {task.bil.model}
                                 </p>
-                                {span >= 3 && (
-                                  <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
-                                    {task.kundenavn}
-                                  </p>
-                                )}
-                                <div className="flex items-center justify-between mt-1">
-                                  <span className="text-[10px] text-slate-400">{formatMinutes(task.tidsestimat)}</span>
-                                  <span className="text-[10px] font-mono text-slate-400">{task.ordrenummer}</span>
-                                </div>
-                              </button>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
+                              )}
+                            </button>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
