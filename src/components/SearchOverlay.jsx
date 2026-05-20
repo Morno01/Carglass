@@ -33,7 +33,8 @@ export default function SearchOverlay({ open, onClose, onSelectOpgave }) {
       o.lokation.toLowerCase().includes(q) ||
       o.opgavetype.toLowerCase().includes(q) ||
       o.dato.includes(q) ||
-      o.dato.replace(/-/g, '.').includes(q)
+      o.dato.replace(/-/g, '.').includes(q) ||
+      new Date(o.dato + 'T00:00:00').toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toLowerCase().includes(q)
     );
     setResults(found);
   }, [query, alle]);

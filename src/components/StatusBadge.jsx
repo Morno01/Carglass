@@ -24,10 +24,11 @@ const sizeClasses = {
   lg: 'text-base px-4 py-1.5 rounded-lg font-semibold',
 };
 
-export default function StatusBadge({ status, size = 'md' }) {
+export default function StatusBadge({ status, size = 'md', small }) {
   const { label, classes, dot } = config[status] ?? config['Afventer'];
+  const s = small ? 'sm' : size;
   return (
-    <span className={`inline-flex items-center font-medium ${classes} ${sizeClasses[size]}`}>
+    <span className={`inline-flex items-center font-medium ${classes} ${sizeClasses[s]}`}>
       <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${dot}`} />
       {label}
     </span>
