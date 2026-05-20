@@ -45,11 +45,11 @@ function formatMinutes(min) {
   return m > 0 ? `${h}t ${m}m` : `${h} time${h > 1 ? 'r' : ''}`;
 }
 
-// Time slots 07:00 – 18:00 in 30-min increments (23 slots)
+// 24 columns: 07:00–18:30 in 30-min steps. 18:30 is a boundary-only end marker.
 const TIME_SLOTS = [];
 for (let h = 7; h <= 18; h++) {
   TIME_SLOTS.push(`${String(h).padStart(2, '0')}:00`);
-  if (h < 18) TIME_SLOTS.push(`${String(h).padStart(2, '0')}:30`);
+  TIME_SLOTS.push(`${String(h).padStart(2, '0')}:30`);
 }
 
 function timeToSlotIndex(time) {
@@ -57,14 +57,19 @@ function timeToSlotIndex(time) {
   return (h - 7) * 2 + (m >= 30 ? 1 : 0);
 }
 
+const SCHEDULEABLE_SLOTS = TIME_SLOTS.length - 1; // 18:30 is boundary-only
+
 function buildSchedule(tasks) {
   const slots = Array(TIME_SLOTS.length).fill(null).map(() => ({ type: 'empty' }));
   for (const task of tasks) {
     const si = timeToSlotIndex(task.starttid);
-    if (si < 0 || si >= slots.length) continue;
-    const span = Math.max(1, Math.ceil(task.tidsestimat / 30));
+    if (si < 0 || si >= SCHEDULEABLE_SLOTS) continue;
+    const span = Math.min(
+      Math.max(1, Math.ceil(task.tidsestimat / 30)),
+      SCHEDULEABLE_SLOTS - si
+    );
     slots[si] = { type: 'task', task, span };
-    for (let i = 1; i < span && si + i < slots.length; i++) {
+    for (let i = 1; i < span; i++) {
       slots[si + i] = { type: 'skip' };
     }
   }
@@ -273,16 +278,16 @@ export default function DashboardPage() {
 
             {/* Timeline table: time slots as columns, repairmen as rows */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-              <table className="border-collapse" style={{ minWidth: `${160 + TIME_SLOTS.length * 52}px` }}>
+              <table className="border-collapse" style={{ tableLayout: 'fixed', minWidth: `${160 + TIME_SLOTS.length * 52}px` }}>
                 <colgroup>
-                  <col style={{ width: '160px', minWidth: '160px' }} />
+                  <col style={{ width: '160px' }} />
                   {TIME_SLOTS.map((slot) => (
-                    <col key={slot} style={{ width: '52px', minWidth: '52px' }} />
+                    <col key={slot} style={{ width: '52px' }} />
                   ))}
                 </colgroup>
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-3 border-r border-slate-200 bg-slate-50 whitespace-nowrap">
+                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-3 border-r border-slate-200 bg-slate-50 whitespace-nowrap" style={{ width: '160px' }}>
                       Medarbejder
                     </th>
                     {TIME_SLOTS.map((slot) => {
@@ -290,7 +295,8 @@ export default function DashboardPage() {
                       return (
                         <th
                           key={slot}
-                          className={`py-2 border-r border-slate-100 last:border-r-0 text-center ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
+                          style={{ width: '52px' }}
+                          className={`py-2 border-r border-slate-100 last:border-r-0 text-left pl-1 ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
                         >
                           {isHour ? (
                             <span className="text-[11px] font-mono text-slate-500">{slot}</span>
