@@ -295,14 +295,15 @@ export default function DashboardPage() {
                       return (
                         <th
                           key={slot}
-                          style={{ width: '52px' }}
-                          className={`py-2 border-r border-slate-100 last:border-r-0 text-left pl-1 ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
+                          style={{ width: '52px', position: 'relative', overflow: 'visible', padding: 0 }}
+                          className={`border-r border-slate-100 last:border-r-0 ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
                         >
-                          {isHour ? (
-                            <span className="text-[11px] font-mono text-slate-500">{slot}</span>
-                          ) : (
-                            <span className="text-[10px] font-mono text-slate-300">:30</span>
-                          )}
+                          <span
+                            style={{ position: 'absolute', left: 0, top: '50%', transform: 'translate(-50%, -50%)', whiteSpace: 'nowrap', pointerEvents: 'none' }}
+                            className={isHour ? 'text-[11px] font-mono text-slate-500' : 'text-[10px] font-mono text-slate-300'}
+                          >
+                            {isHour ? slot : ':30'}
+                          </span>
                         </th>
                       );
                     })}
