@@ -7,18 +7,21 @@ interface Props {
   size?: 'sm' | 'md' | 'lg';
 }
 
-const config: Record<Status, { label: string; classes: string }> = {
+const config: Record<Status, { label: string; classes: string; dot: string }> = {
   Afventer: {
     label: 'Afventer',
-    classes: 'bg-amber-100 text-amber-800 border border-amber-300',
+    classes: 'bg-slate-100 text-slate-600 border border-slate-300',
+    dot: 'bg-slate-400',
   },
   'I gang': {
     label: 'I gang',
-    classes: 'bg-blue-100 text-blue-800 border border-blue-300',
+    classes: 'bg-blue-50 text-blue-700 border border-blue-300',
+    dot: 'bg-blue-500',
   },
-  Færdig: {
-    label: 'Færdig',
-    classes: 'bg-green-100 text-green-800 border border-green-300',
+  Afsluttet: {
+    label: 'Afsluttet',
+    classes: 'bg-green-50 text-green-700 border border-green-300',
+    dot: 'bg-green-500',
   },
 };
 
@@ -29,14 +32,10 @@ const sizeClasses = {
 };
 
 export default function StatusBadge({ status, size = 'md' }: Props) {
-  const { label, classes } = config[status];
+  const { label, classes, dot } = config[status];
   return (
     <span className={`inline-flex items-center font-medium ${classes} ${sizeClasses[size]}`}>
-      <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-        status === 'Afventer' ? 'bg-amber-500' :
-        status === 'I gang'   ? 'bg-blue-500'  :
-                                'bg-green-500'
-      }`} />
+      <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${dot}`} />
       {label}
     </span>
   );
