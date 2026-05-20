@@ -251,12 +251,32 @@ export default function DashboardPage() {
               </button>
             </div>
 
+            {/* Rep filter hint */}
+            {selectedRep && (
+              <p className="mb-3 text-sm text-slate-500">
+                Viser kun{' '}
+                <span className="font-semibold text-slate-700">
+                  {reparatører.find((r) => r.id === selectedRep)?.navn}
+                </span>
+                {' – '}
+                <button onClick={() => setSelectedRep(null)} className="text-blue-600 hover:underline">
+                  Vis alle
+                </button>
+              </p>
+            )}
+
             {/* Timeline table: time slots as columns, repairmen as rows */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
               <table className="border-collapse" style={{ minWidth: `${160 + TIME_SLOTS.length * 52}px` }}>
+                <colgroup>
+                  <col style={{ width: '160px', minWidth: '160px' }} />
+                  {TIME_SLOTS.map((slot) => (
+                    <col key={slot} style={{ width: '52px', minWidth: '52px' }} />
+                  ))}
+                </colgroup>
                 <thead>
                   <tr className="border-b border-slate-200">
-                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-3 border-r border-slate-200 bg-slate-50 whitespace-nowrap w-36">
+                    <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-3 border-r border-slate-200 bg-slate-50 whitespace-nowrap">
                       Medarbejder
                     </th>
                     {TIME_SLOTS.map((slot) => {
@@ -264,12 +284,12 @@ export default function DashboardPage() {
                       return (
                         <th
                           key={slot}
-                          className={`px-0 py-2 border-r border-slate-100 last:border-r-0 text-center w-13 ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
+                          className={`py-2 border-r border-slate-100 last:border-r-0 text-center ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
                         >
                           {isHour ? (
                             <span className="text-[11px] font-mono text-slate-500">{slot}</span>
                           ) : (
-                            <span className="text-[10px] font-mono text-slate-300">:{slot.slice(3)}</span>
+                            <span className="text-[10px] font-mono text-slate-300">:30</span>
                           )}
                         </th>
                       );
@@ -279,14 +299,21 @@ export default function DashboardPage() {
                 <tbody>
                   {visibleReps.map((rep) => (
                     <tr key={rep.id} className="border-b border-slate-100 last:border-b-0">
-                      {/* Repairman name cell */}
-                      <td className="border-r border-slate-200 px-3 py-2 align-middle bg-slate-50/50 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-navy-800 text-white flex items-center justify-center text-xs font-bold shrink-0">
-                            {rep.navn.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                      {/* Repairman name cell — click to filter */}
+                      <td className="border-r border-slate-200 px-2 py-2 align-middle bg-slate-50/50">
+                        <button
+                          onClick={() => setSelectedRep(selectedRep === rep.id ? null : rep.id)}
+                          className={`w-full text-left rounded-lg px-2 py-1.5 transition-colors whitespace-nowrap ${
+                            selectedRep === rep.id ? 'bg-navy-100 ring-2 ring-navy-400' : 'hover:bg-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-navy-800 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                              {rep.navn.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                            </div>
+                            <span className="text-sm font-semibold text-slate-800">{rep.navn}</span>
                           </div>
-                          <span className="text-sm font-semibold text-slate-800">{rep.navn}</span>
-                        </div>
+                        </button>
                       </td>
 
                       {/* Time slot cells */}
