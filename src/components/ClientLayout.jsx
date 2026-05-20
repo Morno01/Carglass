@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 
-export default function ClientLayout({ children }: { children: React.ReactNode }) {
+export default function ClientLayout({ children }) {
   const pathname = usePathname();
   const isStart = pathname === '/';
   return (

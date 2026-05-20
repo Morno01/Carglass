@@ -4,6 +4,7 @@ const KEYS = {
   opgaver: 'carglass_opgaver',
   pauser: 'carglass_pauser',
   pauseSession: 'carglass_pause_session',
+  currentReparatør: 'carglass_current_reparatør',
 };
 
 const REPARATØRER = [
@@ -37,6 +38,24 @@ export function saveOpgaver(opgaver) {
 
 export function getReparatører() {
   return REPARATØRER;
+}
+
+// ── Current Reparatør ──────────────────────────────────────────────────────
+
+export function getCurrentReparatør() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(KEYS.currentReparatør);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function setCurrentReparatør(r) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(KEYS.currentReparatør, JSON.stringify(r));
 }
 
 // ── Pauser ─────────────────────────────────────────────────────────────────

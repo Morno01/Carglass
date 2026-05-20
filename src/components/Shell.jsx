@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Navigation from './Navigation';
 
-export default function Shell({ children }: { children: React.ReactNode }) {
+export default function Shell({ children }) {
   const pathname = usePathname();
   const isStartPage = pathname === '/';
 

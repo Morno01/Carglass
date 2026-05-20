@@ -1,13 +1,6 @@
 'use client';
 
-import { Status } from '@/lib/types';
-
-interface Props {
-  status: Status;
-  size?: 'sm' | 'md' | 'lg';
-}
-
-const config: Record<Status, { label: string; classes: string; dot: string }> = {
+const config = {
   Afventer: {
     label: 'Afventer',
     classes: 'bg-slate-100 text-slate-600 border border-slate-300',
@@ -31,8 +24,8 @@ const sizeClasses = {
   lg: 'text-base px-4 py-1.5 rounded-lg font-semibold',
 };
 
-export default function StatusBadge({ status, size = 'md' }: Props) {
-  const { label, classes, dot } = config[status];
+export default function StatusBadge({ status, size = 'md' }) {
+  const { label, classes, dot } = config[status] ?? config['Afventer'];
   return (
     <span className={`inline-flex items-center font-medium ${classes} ${sizeClasses[size]}`}>
       <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${dot}`} />
