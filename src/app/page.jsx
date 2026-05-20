@@ -7,6 +7,12 @@ import SearchOverlay from '@/components/SearchOverlay';
 import TaskModal from '@/components/TaskModal';
 import StatusBadge from '@/components/StatusBadge';
 
+function addMinutes(time, minutes) {
+  const [h, m] = time.split(':').map(Number);
+  const total = h * 60 + m + minutes;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 function toDateStr(d) {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -342,7 +348,9 @@ export default function DashboardPage() {
                               className={`w-full h-full text-left rounded-lg border-t-4 border p-1.5 transition-all hover:shadow-md group ${statusBorder(task.status)} ${statusBg(task.status)} border-slate-200`}
                             >
                               <div className="flex items-center justify-between gap-1 mb-0.5">
-                                <span className="text-[10px] font-mono text-slate-400">{task.starttid}</span>
+                                <span className="text-[10px] font-mono text-slate-400">
+                                  {task.starttid}–{addMinutes(task.starttid, task.tidsestimat)}
+                                </span>
                                 <StatusBadge status={task.status} size="sm" />
                               </div>
                               <p className="text-[11px] font-semibold text-slate-900 leading-snug group-hover:text-navy-800 line-clamp-2">
