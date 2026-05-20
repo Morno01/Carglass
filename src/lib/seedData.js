@@ -30,15 +30,52 @@ function getStatus(dayOffset, slotIndex) {
 }
 
 const LOKATION = 'Silkeborgvej 2, Aarhus C';
-const TIME_SLOTS = ['08:00', '09:30', '11:00', '13:00', '14:30'];
 
-// Task types: [type, tidsestimat]
+// Task types: [type, tidsestimat (min)]
 const TASK_TYPES = [
-  ['Forrude udskiftning', 90],
-  ['Stenslag reparation', 30],
-  ['Siderude udskiftning', 60],
-  ['Bagrude udskiftning', 75],
-  ['Spejl udskiftning', 45],
+  ['Forrude udskiftning', 90],   // 0
+  ['Stenslag reparation', 30],   // 1
+  ['Siderude udskiftning', 60],  // 2
+  ['Bagrude udskiftning', 75],   // 3
+  ['Spejl udskiftning', 45],     // 4
+];
+
+// Each rep has their own start times and task-type rotation per day
+// REP_SCHEDULES[repIndex][dayIndex] = array of 5 task-type indices
+const REP_SCHEDULES = [
+  // Anders (rep-1) – starts 08:00 each day, tasks rotate by day
+  {
+    times: ['08:00', '09:30', '11:00', '13:00', '14:30'],
+    days: [
+      [0, 1, 2, 3, 4],
+      [1, 2, 3, 4, 0],
+      [2, 3, 4, 0, 1],
+      [3, 4, 0, 1, 2],
+      [4, 0, 1, 2, 3],
+    ],
+  },
+  // Maria (rep-2) – starts 30 min earlier, different task rotation
+  {
+    times: ['07:30', '09:00', '10:30', '12:00', '14:00'],
+    days: [
+      [2, 0, 4, 1, 3],
+      [0, 4, 1, 3, 2],
+      [4, 1, 3, 2, 0],
+      [1, 3, 2, 0, 4],
+      [3, 2, 0, 4, 1],
+    ],
+  },
+  // Peter (rep-3) – starts 30 min later, yet another rotation
+  {
+    times: ['08:30', '10:00', '11:30', '13:30', '15:30'],
+    days: [
+      [3, 1, 0, 4, 2],
+      [4, 2, 1, 0, 3],
+      [0, 3, 2, 1, 4],
+      [1, 4, 3, 2, 0],
+      [2, 0, 4, 3, 1],
+    ],
+  },
 ];
 
 // Customer data: [navn, kontakt, email, adresse]
@@ -239,11 +276,14 @@ const TASK_DETAILS = {
   ],
 };
 
-function makeOpgave(index, repId, dayOffset, slotIndex, customerIndex, carIndex) {
-  const [taskType, tidsestimat] = TASK_TYPES[slotIndex % TASK_TYPES.length];
+function makeOpgave(index, repId, repIndex, dayOffset, slotIndex, customerIndex, carIndex) {
+  const schedule = REP_SCHEDULES[repIndex];
+  const taskTypeIndex = schedule.days[dayOffset][slotIndex];
+  const [taskType, tidsestimat] = TASK_TYPES[taskTypeIndex];
+  const starttid = schedule.times[slotIndex];
   const customer = CUSTOMERS[customerIndex % CUSTOMERS.length];
   const car = CARS[carIndex % CARS.length];
-  const details = TASK_DETAILS[taskType][Math.floor(index / 15) % 5] ?? TASK_DETAILS[taskType][0];
+  const details = TASK_DETAILS[taskType][slotIndex % 5] ?? TASK_DETAILS[taskType][0];
   const orderNum = String(index + 1).padStart(3, '0');
   const dato = getWeekDate(dayOffset);
   const status = getStatus(dayOffset, slotIndex);
@@ -271,27 +311,25 @@ function makeOpgave(index, repId, dayOffset, slotIndex, customerIndex, carIndex)
     status,
     reparatørId: repId,
     dato,
-    starttid: TIME_SLOTS[slotIndex],
+    starttid,
   };
 }
 
 // Build 75 tasks: 3 reps × 5 days × 5 slots
-// Order: for each rep, for each day (Mon=0..Fri=4), for each slot (0..4)
-const REPS = ['rep-1', 'rep-2', 'rep-3'];
-
 export const seedOpgaver = [];
 
 let globalIndex = 0;
-// Customer and car indices per rep so they don't overlap badly
+const REPS = ['rep-1', 'rep-2', 'rep-3'];
 const repCustomerBase = { 'rep-1': 0, 'rep-2': 25, 'rep-3': 50 };
 const repCarBase = { 'rep-1': 0, 'rep-2': 25, 'rep-3': 50 };
 
-for (const repId of REPS) {
+for (let ri = 0; ri < REPS.length; ri++) {
+  const repId = REPS[ri];
   for (let day = 0; day < 5; day++) {
     for (let slot = 0; slot < 5; slot++) {
       const customerIndex = repCustomerBase[repId] + day * 5 + slot;
       const carIndex = repCarBase[repId] + day * 5 + slot;
-      seedOpgaver.push(makeOpgave(globalIndex, repId, day, slot, customerIndex, carIndex));
+      seedOpgaver.push(makeOpgave(globalIndex, repId, ri, day, slot, customerIndex, carIndex));
       globalIndex++;
     }
   }
