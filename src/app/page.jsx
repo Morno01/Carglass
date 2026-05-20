@@ -278,11 +278,11 @@ export default function DashboardPage() {
 
             {/* Timeline table: time slots as columns, repairmen as rows */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-              <table className="border-collapse" style={{ tableLayout: 'fixed', minWidth: `${160 + TIME_SLOTS.length * 52}px` }}>
+              <table className="border-collapse" style={{ tableLayout: 'fixed', minWidth: `${160 + TIME_SLOTS.length * 64}px` }}>
                 <colgroup>
                   <col style={{ width: '160px' }} />
                   {TIME_SLOTS.map((slot) => (
-                    <col key={slot} style={{ width: '52px' }} />
+                    <col key={slot} style={{ width: '64px' }} />
                   ))}
                 </colgroup>
                 <thead>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                       return (
                         <th
                           key={slot}
-                          style={{ width: '52px', position: 'relative', overflow: 'visible', padding: 0 }}
+                          style={{ width: '64px', position: 'relative', overflow: 'visible', padding: 0 }}
                           className={`border-r border-slate-100 last:border-r-0 ${isHour ? 'bg-slate-50' : 'bg-slate-50/40'}`}
                         >
                           <span
@@ -338,7 +338,7 @@ export default function DashboardPage() {
                           return (
                             <td
                               key={slot}
-                              className={`border-r border-slate-100 last:border-r-0 h-16 ${isHour ? '' : 'bg-slate-50/20'}`}
+                              className={`border-r border-slate-100 last:border-r-0 h-20 ${isHour ? '' : 'bg-slate-50/20'}`}
                             />
                           );
                         }
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                           <td
                             key={slot}
                             colSpan={span}
-                            className="border-r border-slate-100 last:border-r-0 px-1 py-1 align-top h-16"
+                            className="border-r border-slate-100 last:border-r-0 px-1 py-1 align-top h-20"
                           >
                             <button
                               onClick={() => setSelectedOpgave(task)}
