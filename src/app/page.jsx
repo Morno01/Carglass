@@ -293,25 +293,23 @@ export default function DashboardPage() {
                     <th className="text-left text-xs font-bold text-slate-400 uppercase tracking-wider px-3 py-3 border-r border-slate-200 bg-slate-50 whitespace-nowrap" style={{ width: '160px' }}>
                       Medarbejder
                     </th>
-                    {TIME_SLOTS.map((slot, si) => {
-                      const mins = slot.slice(3);
+                    {TIME_SLOTS.map((slot) => {
+                      const mins = slot.slice(3); // '00', '15', '30', '45'
                       const isHour = mins === '00';
                       const isHalf = mins === '30';
-                      const hourIndex = Math.floor(si / 4);
-                      const altBg = hourIndex % 2 === 0 ? 'bg-white' : 'bg-slate-100/60';
-                      const borderCls = isHour ? 'border-r-2 border-slate-400' : isHalf ? 'border-r border-slate-300' : 'border-r border-slate-200';
+                      const isQuarter = mins === '15' || mins === '45';
                       return (
                         <th
                           key={slot}
-                          style={{ width: '36px', position: 'relative', overflow: 'visible', padding: 0, height: '36px' }}
-                          className={`last:border-r-0 ${borderCls} ${altBg}`}
+                          style={{ width: '36px', position: 'relative', overflow: 'visible', padding: 0 }}
+                          className={`border-r last:border-r-0 ${isHour ? 'border-slate-200 bg-slate-50' : isHalf ? 'border-slate-150 bg-slate-50/60' : 'border-slate-100 bg-slate-50/30'}`}
                         >
                           <span
                             style={{ position: 'absolute', left: 0, top: '50%', transform: 'translate(-50%, -50%)', whiteSpace: 'nowrap', pointerEvents: 'none' }}
                             className={
-                              isHour ? 'text-[11px] font-bold font-mono text-slate-700' :
-                              isHalf ? 'text-[10px] font-mono text-slate-500' :
-                                       'text-[9px] font-mono text-slate-400'
+                              isHour    ? 'text-[11px] font-semibold font-mono text-slate-600' :
+                              isHalf    ? 'text-[10px] font-mono text-slate-400' :
+                              isQuarter ? 'text-[9px] font-mono text-slate-300' : ''
                             }
                           >
                             {isHour ? slot : `:${mins}`}
@@ -345,17 +343,12 @@ export default function DashboardPage() {
                       {TIME_SLOTS.map((slot, si) => {
                         const cell = schedules[rep.id]?.[si];
                         if (!cell || cell.type === 'skip') return null;
-                        const mins = slot.slice(3);
-                        const isHour = mins === '00';
-                        const isHalf = mins === '30';
-                        const hourIndex = Math.floor(si / 4);
-                        const altBg = hourIndex % 2 === 0 ? 'bg-white' : 'bg-slate-100/40';
-                        const borderCls = isHour ? 'border-r-2 border-slate-400' : isHalf ? 'border-r border-slate-300' : 'border-r border-slate-200';
                         if (cell.type === 'empty') {
+                          const isHour = slot.endsWith(':00');
                           return (
                             <td
                               key={slot}
-                              className={`last:border-r-0 h-20 ${borderCls} ${altBg}`}
+                              className={`border-r border-slate-100 last:border-r-0 h-20 ${isHour ? '' : 'bg-slate-50/20'}`}
                             />
                           );
                         }
@@ -365,7 +358,7 @@ export default function DashboardPage() {
                           <td
                             key={slot}
                             colSpan={span}
-                            className={`last:border-r-0 px-1 py-1 align-top h-20 ${borderCls}`}
+                            className="border-r border-slate-100 last:border-r-0 px-1 py-1 align-top h-20"
                           >
                             <button
                               onClick={() => setSelectedOpgave(task)}
