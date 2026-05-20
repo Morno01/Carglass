@@ -20,7 +20,10 @@ function getMonday() {
 const WEEKDAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'];
 
 function toDateStr(d) {
-  return d.toISOString().split('T')[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function formatMinutes(min) {
@@ -80,9 +83,10 @@ export default function DashboardPage() {
 
   const visibleDates = view === 'uge' ? weekDates : weekDates.filter((d) => toDateStr(d) === today);
 
-  const total = opgaver.length;
-  const iGangCount = opgaver.filter((o) => o.status === 'I gang').length;
-  const afsluttetCount = opgaver.filter((o) => o.status === 'Afsluttet').length;
+  const statsOpgaver = view === 'dag' ? opgaver.filter((o) => o.dato === today) : opgaver;
+  const total = statsOpgaver.length;
+  const iGangCount = statsOpgaver.filter((o) => o.status === 'I gang').length;
+  const afsluttetCount = statsOpgaver.filter((o) => o.status === 'Afsluttet').length;
 
   const visibleReps = selectedRep ? reparatører.filter((r) => r.id === selectedRep) : reparatører;
 

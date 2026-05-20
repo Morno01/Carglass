@@ -1,5 +1,7 @@
 import { seedOpgaver, seedPauser } from './seedData';
 
+const SEED_VERSION = 'v3';
+
 const KEYS = {
   opgaver: 'carglass_opgaver',
   pauser: 'carglass_pauser',
@@ -19,8 +21,10 @@ export function getOpgaver() {
   if (typeof window === 'undefined') return seedOpgaver;
   try {
     const raw = localStorage.getItem(KEYS.opgaver);
-    if (!raw) {
+    const version = localStorage.getItem('carglass_seed_version');
+    if (!raw || version !== SEED_VERSION) {
       saveOpgaver(seedOpgaver);
+      localStorage.setItem('carglass_seed_version', SEED_VERSION);
       return seedOpgaver;
     }
     return JSON.parse(raw);

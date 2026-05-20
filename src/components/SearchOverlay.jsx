@@ -31,7 +31,9 @@ export default function SearchOverlay({ open, onClose, onSelectOpgave }) {
       o.bil.nummerplade.toLowerCase().includes(q) ||
       o.ordrenummer.toLowerCase().includes(q) ||
       o.lokation.toLowerCase().includes(q) ||
-      o.opgavetype.toLowerCase().includes(q)
+      o.opgavetype.toLowerCase().includes(q) ||
+      o.dato.includes(q) ||
+      o.dato.replace(/-/g, '.').includes(q)
     );
     setResults(found);
   }, [query, alle]);
@@ -39,8 +41,8 @@ export default function SearchOverlay({ open, onClose, onSelectOpgave }) {
   if (!open) return null;
 
   const borderColor = (status) =>
-    status === 'Afsluttet' ? 'border-l-green-500' :
-    status === 'I gang'    ? 'border-l-blue-500'  :
+    status === 'Afsluttet' ? 'border-l-blue-500'  :
+    status === 'I gang'    ? 'border-l-green-500' :
                              'border-l-slate-300';
 
   return (
