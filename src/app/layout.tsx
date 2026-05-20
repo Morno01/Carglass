@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Navigation from '@/components/Navigation';
-import ClientLayout from '@/components/ClientLayout';
+import TopNav from '@/components/TopNav';
 
 export const metadata: Metadata = {
   title: 'Carglass – Værkstedssystem',
@@ -16,8 +15,10 @@ export default function RootLayout({
   return (
     <html lang="da">
       <body className="min-h-screen bg-slate-50">
-        <Navigation />
-        <ClientLayout>{children}</ClientLayout>
+        <TopNav />
+        <main className="pt-16">
+          {children}
+        </main>
       </body>
     </html>
   );

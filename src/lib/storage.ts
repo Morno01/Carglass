@@ -1,16 +1,16 @@
-import { Opgave, Pause, Reparatør } from './types';
+import { Opgave, Pause, PauseSession, Reparatør } from './types';
 import { seedOpgaver, seedPauser } from './seedData';
 
 const KEYS = {
   opgaver: 'carglass_opgaver',
-  reparatør: 'carglass_current_reparatør',
   pauser: 'carglass_pauser',
+  pauseSession: 'carglass_pause_session',
 };
 
 const REPARATØRER: Reparatør[] = [
   { id: 'rep-1', navn: 'Anders Nielsen' },
-  { id: 'rep-2', navn: 'Mette Christensen' },
-  { id: 'rep-3', navn: 'Kasper Jensen' },
+  { id: 'rep-2', navn: 'Maria Hansen' },
+  { id: 'rep-3', navn: 'Peter Jensen' },
 ];
 
 // ── Opgaver ────────────────────────────────────────────────────────────────
@@ -40,22 +40,6 @@ export function getReparatører(): Reparatør[] {
   return REPARATØRER;
 }
 
-export function getCurrentReparatør(): Reparatør | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(KEYS.reparatør);
-    if (!raw) return null;
-    return JSON.parse(raw) as Reparatør;
-  } catch {
-    return null;
-  }
-}
-
-export function setCurrentReparatør(r: Reparatør): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(KEYS.reparatør, JSON.stringify(r));
-}
-
 // ── Pauser ─────────────────────────────────────────────────────────────────
 
 export function getPauser(): Pause[] {
@@ -75,4 +59,27 @@ export function getPauser(): Pause[] {
 export function savePauser(pauser: Pause[]): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(KEYS.pauser, JSON.stringify(pauser));
+}
+
+// ── Pause Session ──────────────────────────────────────────────────────────
+
+export function getPauseSession(): PauseSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(KEYS.pauseSession);
+    if (!raw) return null;
+    return JSON.parse(raw) as PauseSession;
+  } catch {
+    return null;
+  }
+}
+
+export function setPauseSession(s: PauseSession): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(KEYS.pauseSession, JSON.stringify(s));
+}
+
+export function clearPauseSession(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(KEYS.pauseSession);
 }
