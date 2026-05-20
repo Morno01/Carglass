@@ -3,18 +3,18 @@
 const config = {
   Afventer: {
     label: 'Afventer',
-    classes: 'bg-slate-100 text-slate-600 border border-slate-300',
+    classes: 'bg-slate-100 text-slate-600 border border-slate-200',
     dot: 'bg-slate-400',
   },
   'I gang': {
     label: 'I gang',
-    classes: 'bg-blue-50 text-blue-700 border border-blue-300',
-    dot: 'bg-blue-500',
+    classes: 'bg-green-100 text-green-700 border border-green-200',
+    dot: 'bg-green-500',
   },
   Afsluttet: {
     label: 'Afsluttet',
-    classes: 'bg-green-50 text-green-700 border border-green-300',
-    dot: 'bg-green-500',
+    classes: 'bg-blue-100 text-blue-700 border border-blue-200',
+    dot: 'bg-blue-500',
   },
 };
 

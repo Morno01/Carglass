@@ -27,7 +27,7 @@ export default function TaskModal({ opgave, onClose, onUpdated }) {
 
   function handleStart() {
     const alle = getOpgaver();
-    const iGang = alle.find((o) => o.status === 'I gang' && o.id !== opgave.id);
+    const iGang = alle.find((o) => o.status === 'I gang' && o.id !== opgave.id && o.reparatørId === opgave.reparatørId);
     if (iGang) { setConflict(true); return; }
     const updated = alle.map((o) => o.id === opgave.id ? { ...o, status: 'I gang' } : o);
     saveOpgaver(updated);
