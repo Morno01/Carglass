@@ -5,30 +5,6 @@ function toLocalDateStr(d) {
   return `${year}-${month}-${day}`;
 }
 
-function getWeekDate(dayOffset) {
-  const now = new Date();
-  const day = now.getDay(); // 0=Sun, 1=Mon ... 6=Sat
-  const diff = day === 0 ? -6 : 1 - day;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + diff);
-  monday.setHours(0, 0, 0, 0);
-  const target = new Date(monday);
-  target.setDate(monday.getDate() + dayOffset);
-  return toLocalDateStr(target);
-}
-
-function getStatus(dayOffset, slotIndex) {
-  const today = toLocalDateStr(new Date());
-  const dateStr = getWeekDate(dayOffset);
-  if (dateStr < today) return 'Afsluttet';
-  if (dateStr === today) {
-    if (slotIndex < 2) return 'Afsluttet';
-    if (slotIndex === 2) return 'I gang';
-    return 'Afventer';
-  }
-  return 'Afventer';
-}
-
 const LOKATION = 'Silkeborgvej 2, Aarhus C';
 
 // Task types: [type, tidsestimat (min)]
@@ -276,109 +252,80 @@ const TASK_DETAILS = {
   ],
 };
 
-function makeOpgave(index, repId, repIndex, dayOffset, slotIndex, customerIndex, carIndex) {
-  const schedule = REP_SCHEDULES[repIndex];
-  const taskTypeIndex = schedule.days[dayOffset][slotIndex];
-  const [taskType, tidsestimat] = TASK_TYPES[taskTypeIndex];
-  const starttid = schedule.times[slotIndex];
-  const customer = CUSTOMERS[customerIndex % CUSTOMERS.length];
-  const car = CARS[carIndex % CARS.length];
-  const details = TASK_DETAILS[taskType][slotIndex % 5] ?? TASK_DETAILS[taskType][0];
-  const orderNum = String(index + 1).padStart(3, '0');
-  const dato = getWeekDate(dayOffset);
-  const status = getStatus(dayOffset, slotIndex);
-
-  return {
-    id: `opgave-${index + 1}`,
-    ordrenummer: `CG-${orderNum}`,
-    kundenavn: customer[0],
-    kundeKontakt: customer[1],
-    kundeEmail: customer[2],
-    kundeAdresse: customer[3],
-    bil: {
-      mærke: car[0],
-      model: car[1],
-      nummerplade: car[2],
-      årstal: car[3],
-      stelnummer: car[4],
-    },
-    opgavetype: taskType,
-    beskrivelse: details.beskrivelse,
-    lokation: LOKATION,
-    dele: details.dele,
-    noter: details.noter,
-    tidsestimat,
-    status,
-    reparatørId: repId,
-    dato,
-    starttid,
-  };
+function getStatus(dateStr, slotIndex) {
+  const today = toLocalDateStr(new Date());
+  if (dateStr < today) return 'Afsluttet';
+  if (dateStr === today) {
+    if (slotIndex < 2) return 'Afsluttet';
+    if (slotIndex === 2) return 'I gang';
+    return 'Afventer';
+  }
+  return 'Afventer';
 }
 
-// Build 75 tasks: 3 reps × 5 days × 5 slots
+function getWorkingDays() {
+  const days = [];
+  const d = new Date(2026, 4, 1); // May 1 (month is 0-indexed)
+  const end = new Date(2026, 5, 19); // June 19
+  while (d <= end) {
+    const dow = d.getDay();
+    if (dow >= 1 && dow <= 5) {
+      days.push({ dateStr: toLocalDateStr(d), dayIdx: dow - 1 });
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  days.push({ dateStr: '2026-06-20', dayIdx: 4 });
+  return days;
+}
+
 export const seedOpgaver = [];
-
-let globalIndex = 0;
 const REPS = ['rep-1', 'rep-2', 'rep-3'];
-const repCustomerBase = { 'rep-1': 0, 'rep-2': 25, 'rep-3': 50 };
-const repCarBase = { 'rep-1': 0, 'rep-2': 25, 'rep-3': 50 };
+let globalIndex = 0;
+const workingDays = getWorkingDays();
 
-for (let ri = 0; ri < REPS.length; ri++) {
-  const repId = REPS[ri];
-  for (let day = 0; day < 5; day++) {
+for (const { dateStr, dayIdx } of workingDays) {
+  for (let ri = 0; ri < REPS.length; ri++) {
+    const repId = REPS[ri];
+    const schedule = REP_SCHEDULES[ri];
     for (let slot = 0; slot < 5; slot++) {
-      const customerIndex = repCustomerBase[repId] + day * 5 + slot;
-      const carIndex = repCarBase[repId] + day * 5 + slot;
-      seedOpgaver.push(makeOpgave(globalIndex, repId, ri, day, slot, customerIndex, carIndex));
+      const customerIndex = globalIndex % CUSTOMERS.length;
+      const carIndex = globalIndex % CARS.length;
+      const taskTypeIndex = schedule.days[dayIdx][slot];
+      const [taskType, tidsestimat] = TASK_TYPES[taskTypeIndex];
+      const starttid = schedule.times[slot];
+      const customer = CUSTOMERS[customerIndex];
+      const car = CARS[carIndex];
+      const details = TASK_DETAILS[taskType][slot % 5] ?? TASK_DETAILS[taskType][0];
+      const orderNum = String(globalIndex + 1).padStart(3, '0');
+      const status = getStatus(dateStr, slot);
+
+      seedOpgaver.push({
+        id: `opgave-${globalIndex + 1}`,
+        ordrenummer: `CG-${orderNum}`,
+        kundenavn: customer[0],
+        kundeKontakt: customer[1],
+        kundeEmail: customer[2],
+        kundeAdresse: customer[3],
+        bil: {
+          mærke: car[0],
+          model: car[1],
+          nummerplade: car[2],
+          årstal: car[3],
+          stelnummer: car[4],
+        },
+        opgavetype: taskType,
+        beskrivelse: details.beskrivelse,
+        lokation: LOKATION,
+        dele: details.dele,
+        noter: details.noter,
+        tidsestimat,
+        status,
+        reparatørId: repId,
+        dato: dateStr,
+        starttid,
+      });
       globalIndex++;
     }
-  }
-}
-
-// Add 15 tasks for June 20, 2026 (Friday → day schedule index 4)
-const JUNE20_DATE = '2026-06-20';
-const JUNE20_DAY_IDX = 4;
-
-for (let ri = 0; ri < REPS.length; ri++) {
-  const repId = REPS[ri];
-  const schedule = REP_SCHEDULES[ri];
-  for (let slot = 0; slot < 5; slot++) {
-    const customerIndex = 75 + ri * 5 + slot;
-    const carIndex = 75 + ri * 5 + slot;
-    const taskTypeIndex = schedule.days[JUNE20_DAY_IDX][slot];
-    const [taskType, tidsestimat] = TASK_TYPES[taskTypeIndex];
-    const starttid = schedule.times[slot];
-    const customer = CUSTOMERS[customerIndex % CUSTOMERS.length];
-    const car = CARS[carIndex % CARS.length];
-    const details = TASK_DETAILS[taskType][slot % 5] ?? TASK_DETAILS[taskType][0];
-    const orderNum = String(globalIndex + 1).padStart(3, '0');
-
-    seedOpgaver.push({
-      id: `opgave-${globalIndex + 1}`,
-      ordrenummer: `CG-${orderNum}`,
-      kundenavn: customer[0],
-      kundeKontakt: customer[1],
-      kundeEmail: customer[2],
-      kundeAdresse: customer[3],
-      bil: {
-        mærke: car[0],
-        model: car[1],
-        nummerplade: car[2],
-        årstal: car[3],
-        stelnummer: car[4],
-      },
-      opgavetype: taskType,
-      beskrivelse: details.beskrivelse,
-      lokation: LOKATION,
-      dele: details.dele,
-      noter: details.noter,
-      tidsestimat,
-      status: 'Afventer',
-      reparatørId: repId,
-      dato: JUNE20_DATE,
-      starttid,
-    });
-    globalIndex++;
   }
 }
 
