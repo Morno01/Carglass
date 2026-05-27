@@ -335,4 +335,51 @@ for (let ri = 0; ri < REPS.length; ri++) {
   }
 }
 
+// Add 15 tasks for June 20, 2026 (Friday → day schedule index 4)
+const JUNE20_DATE = '2026-06-20';
+const JUNE20_DAY_IDX = 4;
+
+for (let ri = 0; ri < REPS.length; ri++) {
+  const repId = REPS[ri];
+  const schedule = REP_SCHEDULES[ri];
+  for (let slot = 0; slot < 5; slot++) {
+    const customerIndex = 75 + ri * 5 + slot;
+    const carIndex = 75 + ri * 5 + slot;
+    const taskTypeIndex = schedule.days[JUNE20_DAY_IDX][slot];
+    const [taskType, tidsestimat] = TASK_TYPES[taskTypeIndex];
+    const starttid = schedule.times[slot];
+    const customer = CUSTOMERS[customerIndex % CUSTOMERS.length];
+    const car = CARS[carIndex % CARS.length];
+    const details = TASK_DETAILS[taskType][slot % 5] ?? TASK_DETAILS[taskType][0];
+    const orderNum = String(globalIndex + 1).padStart(3, '0');
+
+    seedOpgaver.push({
+      id: `opgave-${globalIndex + 1}`,
+      ordrenummer: `CG-${orderNum}`,
+      kundenavn: customer[0],
+      kundeKontakt: customer[1],
+      kundeEmail: customer[2],
+      kundeAdresse: customer[3],
+      bil: {
+        mærke: car[0],
+        model: car[1],
+        nummerplade: car[2],
+        årstal: car[3],
+        stelnummer: car[4],
+      },
+      opgavetype: taskType,
+      beskrivelse: details.beskrivelse,
+      lokation: LOKATION,
+      dele: details.dele,
+      noter: details.noter,
+      tidsestimat,
+      status: 'Afventer',
+      reparatørId: repId,
+      dato: JUNE20_DATE,
+      starttid,
+    });
+    globalIndex++;
+  }
+}
+
 export const seedPauser = [];
