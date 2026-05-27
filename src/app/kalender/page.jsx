@@ -203,21 +203,12 @@ export default function KalenderPage() {
                     {d.getDate()}
                   </div>
 
-                  {/* Task dots / previews */}
+                  {/* Task count */}
                   {tasks.length > 0 && inMonth && (
-                    <div className="space-y-0.5">
-                      {tasks.slice(0, 3).map((task) => (
-                        <div
-                          key={task.id}
-                          className="flex items-center gap-1 truncate"
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUS_DOT[task.status] ?? 'bg-slate-400'}`} />
-                          <span className="text-[10px] text-slate-600 truncate leading-tight">{task.starttid} {task.opgavetype}</span>
-                        </div>
-                      ))}
-                      {tasks.length > 3 && (
-                        <span className="text-[10px] text-slate-400">+{tasks.length - 3} mere</span>
-                      )}
+                    <div className="mt-1">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                        {tasks.length} opgave{tasks.length !== 1 ? 'r' : ''}
+                      </span>
                     </div>
                   )}
                 </button>

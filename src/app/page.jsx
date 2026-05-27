@@ -118,10 +118,10 @@ export default function DashboardPage() {
     return d;
   });
 
-  // Stats: for dag view show current day, for uge show all
+  // Stats: filtered by current view and selected rep
   const statsOpgaver = view === 'dag'
-    ? opgaver.filter((o) => o.dato === currentDateStr)
-    : opgaver;
+    ? opgaver.filter((o) => o.dato === currentDateStr && (!selectedRep || o.reparatørId === selectedRep))
+    : opgaver.filter((o) => !selectedRep || o.reparatørId === selectedRep);
   const total = statsOpgaver.length;
   const iGangCount = statsOpgaver.filter((o) => o.status === 'I gang').length;
   const afsluttetCount = statsOpgaver.filter((o) => o.status === 'Afsluttet').length;

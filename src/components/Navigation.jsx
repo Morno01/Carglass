@@ -1,17 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getCurrentReparatør } from '@/lib/storage';
 
 const navItems = [
   {
-    href: '/dagsoversigt',
-    label: 'Dagsoversigt',
+    href: '/',
+    label: 'Dashboard',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
       </svg>
     ),
   },
@@ -37,15 +37,11 @@ const navItems = [
 
 export default function Navigation() {
   const pathname = usePathname();
-  const router = useRouter();
   const [reparatør, setReparatør] = useState(null);
 
   useEffect(() => {
     setReparatør(getCurrentReparatør());
   }, [pathname]);
-
-  // Hide sidebar on start/login page
-  if (pathname === '/') return null;
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-navy-800 text-white flex flex-col shadow-xl z-40">
@@ -88,7 +84,7 @@ export default function Navigation() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'));
           return (
             <Link
               key={item.href}
