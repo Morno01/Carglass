@@ -1,6 +1,6 @@
 import { seedOpgaver, seedPauser } from './seedData';
 
-const SEED_VERSION = 'v4';
+const SEED_VERSION = 'v5';
 
 const KEYS = {
   opgaver: 'carglass_opgaver',
