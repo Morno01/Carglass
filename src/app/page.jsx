@@ -84,6 +84,7 @@ export default function DashboardPage() {
   const [reparatører, setReparatører] = useState([]);
   const [view, setView] = useState('dag');
   const [dayOffset, setDayOffset] = useState(0);
+  const [weekOffset, setWeekOffset] = useState(0);
   const [selectedRep, setSelectedRep] = useState(null);
   const [selectedOpgave, setSelectedOpgave] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -111,17 +112,30 @@ export default function DashboardPage() {
   const currentDateStr = toDateStr(currentDay);
   const isCurrentDayToday = currentDateStr === today;
 
-  // Week view dates
+  // Week view: offset from current week
+  const weekStart = new Date(monday);
+  weekStart.setDate(monday.getDate() + weekOffset * 7);
   const weekDates = Array.from({ length: 5 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
     return d;
   });
+  const weekDateStrs = weekDates.map(toDateStr);
 
-  // Stats: filtered by current view and selected rep
+  const weekLabel = (() => {
+    const start = weekDates[0];
+    const end = weekDates[4];
+    const sameMonth = start.getMonth() === end.getMonth();
+    if (sameMonth) {
+      return `${start.getDate()}–${end.getDate()}. ${end.toLocaleDateString('da-DK', { month: 'long', year: 'numeric' })}`;
+    }
+    return `${start.toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })} – ${end.toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  })();
+
+  // Stats: filtered by current view/week and selected rep
   const statsOpgaver = view === 'dag'
     ? opgaver.filter((o) => o.dato === currentDateStr && (!selectedRep || o.reparatørId === selectedRep))
-    : opgaver.filter((o) => !selectedRep || o.reparatørId === selectedRep);
+    : opgaver.filter((o) => weekDateStrs.includes(o.dato) && (!selectedRep || o.reparatørId === selectedRep));
   const total = statsOpgaver.length;
   const iGangCount = statsOpgaver.filter((o) => o.status === 'I gang').length;
   const afsluttetCount = statsOpgaver.filter((o) => o.status === 'Afsluttet').length;
@@ -397,6 +411,37 @@ export default function DashboardPage() {
         {/* ── UGE VIEW ── */}
         {view === 'uge' && (
           <>
+            {/* Week navigation */}
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => setWeekOffset((v) => v - 1)}
+                className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+                aria-label="Forrige uge"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+                </svg>
+              </button>
+              <span className="text-sm font-semibold text-slate-700 capitalize">{weekLabel}</span>
+              {weekOffset !== 0 && (
+                <button
+                  onClick={() => setWeekOffset(0)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors"
+                >
+                  Denne uge
+                </button>
+              )}
+              <button
+                onClick={() => setWeekOffset((v) => v + 1)}
+                className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+                aria-label="Næste uge"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
             {/* Rep filter hint */}
             {selectedRep && (
               <p className="mb-3 text-sm text-slate-500">

@@ -12,17 +12,24 @@ export default function TopNav({ onSearchClick, searchOpen }) {
 
   return (
     <header className="sticky top-0 z-40 bg-navy-800 text-white shadow-md">
-      {/* Row 1: title */}
-      <div className="flex items-center px-4 h-12 border-b border-navy-700/60">
+      {/* Row 1: brand + dashboard button */}
+      <div className="flex items-center justify-between px-4 h-12 border-b border-navy-700/60">
+        <span className="text-white font-bold text-lg tracking-tight">
+          Carglass Dashboard
+        </span>
         <button
           onClick={() => router.push('/')}
-          className="text-white font-bold text-lg tracking-tight hover:text-navy-200 transition-colors"
+          aria-label="Dashboard"
+          className={`${btnBase} ${pathname === '/' ? btnActive : btnInactive}`}
         >
-          Carglass Dashboard
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+            <path fillRule="evenodd" d="M1 2.75A.75.75 0 011.75 2h4a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4A.75.75 0 011 7.25v-4.5zM1 12.75a.75.75 0 01.75-.75h4a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4a.75.75 0 01-.75-.75v-4.5zM9.25 2a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h4a.75.75 0 00.75-.75v-4.5A.75.75 0 0013.25 2h-4zM9.25 12a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h4a.75.75 0 00.75-.75v-4.5a.75.75 0 00-.75-.75h-4z" clipRule="evenodd" />
+          </svg>
+          Dashboard
         </button>
       </div>
 
-      {/* Row 2: nav buttons — right-aligned */}
+      {/* Row 2: nav buttons */}
       <div className="flex items-center justify-end gap-1 px-4 py-1.5">
         <button
           onClick={onSearchClick}
